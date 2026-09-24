@@ -277,9 +277,9 @@ div[data-testid="stButton"]:has(button[kind="secondary"]) > button,
 
 
 # ── Session state ─────────────────────────────────────────────────────────────
-for key in ("results", "running", "done", "chip_fill"):
+for key in ("results", "running", "done", "chip_fill", "pending_clear"):
     if key not in st.session_state:
-        st.session_state[key] = {} if key == "results" else False if key != "chip_fill" else ""
+        st.session_state[key] = {} if key == "results" else False if key not in ("chip_fill", "pending_clear") else ""
 
 # Fixed model — no dropdown shown to user
 FIXED_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
@@ -322,10 +322,13 @@ EXAMPLE_TOPICS = [
     "🚀 SpaceX Starship update",
 ]
 
-# Pre-fill input if a chip was clicked on the previous run
+# Pre-fill or clear input BEFORE the widget is rendered
 if st.session_state.chip_fill:
     st.session_state["topic_input"] = st.session_state.chip_fill
     st.session_state.chip_fill = ""
+if st.session_state.pending_clear:
+    st.session_state["topic_input"] = ""
+    st.session_state.pending_clear = ""
 
 # ── Search input ──────────────────────────────────────────────────────────────
 st.markdown('<div class="search-wrapper">', unsafe_allow_html=True)
@@ -367,11 +370,11 @@ status_ph   = st.empty()
 
 # Handle clear
 if clear_btn:
-    st.session_state.results  = {}
-    st.session_state.running  = False
-    st.session_state.done     = False
-    st.session_state.chip_fill = ""
-    st.session_state["topic_input"] = ""
+    st.session_state.results       = {}
+    st.session_state.running       = False
+    st.session_state.done          = False
+    st.session_state.chip_fill     = ""
+    st.session_state.pending_clear = "yes"  # will clear input on next render
     st.rerun()
 
 STEPS = [
