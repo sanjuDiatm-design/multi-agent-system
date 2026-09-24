@@ -317,12 +317,9 @@ st.markdown("""
 
 # ── Example topics ───────────────────────────────────────────────────────────
 EXAMPLE_TOPICS = [
-    "🤖 Rise of Agentic AI in 2026",
-    "🧬 CRISPR gene editing breakthroughs",
-    "🔋 Solid-state battery technology",
-    "🌍 Climate change solutions 2025",
-    "🚀 SpaceX Starship latest update",
-    "💊 GLP-1 drugs and obesity research",
+    "🤖 Agentic AI in 2026",
+    "🧬 CRISPR gene editing",
+    "🚀 SpaceX Starship update",
 ]
 
 # Pre-fill input if a chip was clicked on the previous run
@@ -341,11 +338,11 @@ topic = st.text_input(
 
 # ── Chip buttons (real Streamlit buttons styled as pills via CSS) ─────────────
 st.markdown('<p style="text-align:center;font-size:0.7rem;color:#555;font-family:DM Mono,monospace;letter-spacing:0.1em;margin:0.6rem 0 0.4rem;">TRY AN EXAMPLE</p>', unsafe_allow_html=True)
-chip_cols = st.columns(len(EXAMPLE_TOPICS))
-for i, t in enumerate(EXAMPLE_TOPICS):
-    with chip_cols[i]:
-        if st.button(t, key=f"chip_{i}", use_container_width=True):
-            st.session_state.chip_fill = t.split(" ", 1)[-1]  # strip emoji
+_, c1, c2, c3, _ = st.columns([1, 2, 2, 2, 1])
+for col, t in zip([c1, c2, c3], EXAMPLE_TOPICS):
+    with col:
+        if st.button(t, key=f"chip_{EXAMPLE_TOPICS.index(t)}", use_container_width=True):
+            st.session_state.chip_fill = t.split(" ", 1)[-1]
             st.rerun()
 
 # ── Run + Clear buttons ───────────────────────────────────────────────────────
