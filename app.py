@@ -232,14 +232,54 @@ div[data-testid="stButton"]:has(button[kind="secondary"]) > button,
     font-family: 'DM Mono', monospace; font-size: 0.68rem;
     color: #383430; text-align: center; margin-top: 3rem; letter-spacing: 0.08em;
 }
+
+/* ── Chip buttons (Streamlit buttons styled as pills) ── */
+[data-testid="stHorizontalBlock"] .stButton > button {
+    background: rgba(255,140,50,0.08) !important;
+    border: 1px solid rgba(255,140,50,0.25) !important;
+    border-radius: 999px !important;
+    color: #ffaa66 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 400 !important;
+    padding: 0.28rem 0.85rem !important;
+    box-shadow: none !important;
+    width: auto !important;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s !important;
+    letter-spacing: 0 !important;
+}
+[data-testid="stHorizontalBlock"] .stButton > button:hover {
+    background: rgba(255,140,50,0.2) !important;
+    border-color: rgba(255,140,50,0.55) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: none !important;
+    color: #ffcc88 !important;
+}
+
+/* ── Clear button override ── */
+#clear-row .stButton > button {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #777 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0 !important;
+}
+#clear-row .stButton > button:hover {
+    border-color: rgba(255,80,80,0.4) !important;
+    color: #ff6666 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 
 # ── Session state ─────────────────────────────────────────────────────────────
-for key in ("results", "running", "done"):
+for key in ("results", "running", "done", "chip_fill"):
     if key not in st.session_state:
-        st.session_state[key] = {} if key == "results" else False
+        st.session_state[key] = {} if key == "results" else False if key != "chip_fill" else ""
 
 # Fixed model — no dropdown shown to user
 FIXED_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
@@ -275,7 +315,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Example chips (click to fill) ───────────────────────────────────────────
+# ── Example topics ───────────────────────────────────────────────────────────
 EXAMPLE_TOPICS = [
     "🤖 Rise of Agentic AI in 2026",
     "🧬 CRISPR gene editing breakthroughs",
@@ -285,46 +325,39 @@ EXAMPLE_TOPICS = [
     "💊 GLP-1 drugs and obesity research",
 ]
 
-# ── Centered search layout ────────────────────────────────────────────────────
+# Pre-fill input if a chip was clicked on the previous run
+if st.session_state.chip_fill:
+    st.session_state["topic_input"] = st.session_state.chip_fill
+    st.session_state.chip_fill = ""
+
+# ── Search input ──────────────────────────────────────────────────────────────
 st.markdown('<div class="search-wrapper">', unsafe_allow_html=True)
 
 topic = st.text_input(
     "Research Topic",
-    placeholder="e.g. Rise of agentic AI in 2026  —  press Enter or click Run",
+    placeholder="e.g. Rise of agentic AI in 2026",
     key="topic_input",
 )
 
-# Chips row — build without conflicting f-string escapes
-def make_chip(label):
-    topic_text = label.split(" ", 1)[-1]  # strip emoji prefix
-    onclick = f"document.querySelector('input').value='{topic_text}'"
-    return f'<span class="chip" onclick="{onclick}">{label}</span>'
+# ── Chip buttons (real Streamlit buttons styled as pills via CSS) ─────────────
+st.markdown('<p style="text-align:center;font-size:0.7rem;color:#555;font-family:DM Mono,monospace;letter-spacing:0.1em;margin:0.6rem 0 0.4rem;">TRY AN EXAMPLE</p>', unsafe_allow_html=True)
+chip_cols = st.columns(len(EXAMPLE_TOPICS))
+for i, t in enumerate(EXAMPLE_TOPICS):
+    with chip_cols[i]:
+        if st.button(t, key=f"chip_{i}", use_container_width=True):
+            st.session_state.chip_fill = t.split(" ", 1)[-1]  # strip emoji
+            st.rerun()
 
-chips_html = '<div class="chips-row">' + "".join(make_chip(t) for t in EXAMPLE_TOPICS) + "</div>"
-st.markdown(chips_html, unsafe_allow_html=True)
-
+# ── Run + Clear buttons ───────────────────────────────────────────────────────
 col_run, col_gap2, col_clear = st.columns([4, 0.3, 1.5])
 with col_run:
     run_btn = st.button("⚡  Run Research", use_container_width=True, key="run_btn")
 with col_clear:
+    st.markdown('<div id="clear-row">', unsafe_allow_html=True)
     clear_btn = st.button("✕  Clear", use_container_width=True, key="clear_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-# Enter key support via JS
-st.markdown("""
-<script>
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const btns = window.parent.document.querySelectorAll('button');
-        for (const b of btns) {
-            if (b.innerText.includes('Run Research')) { b.click(); break; }
-        }
-    }
-});
-</script>
-""", unsafe_allow_html=True)
-
 st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
 # ── Pipeline tracker (right side) ────────────────────────────────────────────
@@ -337,9 +370,11 @@ status_ph   = st.empty()
 
 # Handle clear
 if clear_btn:
-    st.session_state.results = {}
-    st.session_state.running = False
-    st.session_state.done    = False
+    st.session_state.results  = {}
+    st.session_state.running  = False
+    st.session_state.done     = False
+    st.session_state.chip_fill = ""
+    st.session_state["topic_input"] = ""
     st.rerun()
 
 STEPS = [
