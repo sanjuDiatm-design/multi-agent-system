@@ -61,32 +61,63 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: #e8e4dc;
     margin: 1.8rem 0;
 }
 
-/* ── Input card ── */
-.input-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,140,50,0.15);
-    border-radius: 16px; padding: 1.8rem 2rem;
-    margin-bottom: 0;
+/* ── Search wrapper ── */
+.search-wrapper {
+    max-width: 720px;
+    margin: 0 auto 0.5rem;
+    position: relative;
+}
+.search-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #ff8c32;
+    font-weight: 500; margin-bottom: 0.55rem;
+    display: block;
 }
 
 /* ── Input overrides ── */
 .stTextInput > div > div > input {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(255,140,50,0.25) !important;
-    border-radius: 10px !important; color: #f0ebe0 !important;
+    border-radius: 14px !important; color: #f0ebe0 !important;
     font-family: 'DM Sans', sans-serif !important;
-    font-size: 1rem !important; padding: 0.75rem 1rem !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
+    font-size: 1.15rem !important;
+    padding: 1rem 1.4rem !important;
+    transition: border-color 0.25s, box-shadow 0.25s, background 0.25s !important;
+    height: 60px !important;
 }
 .stTextInput > div > div > input:focus {
     border-color: #ff8c32 !important;
-    box-shadow: 0 0 0 3px rgba(255,140,50,0.12) !important;
+    background: rgba(255,140,50,0.06) !important;
+    box-shadow: 0 0 0 4px rgba(255,140,50,0.14) !important;
 }
 .stTextInput > label {
     font-family: 'DM Mono', monospace !important;
-    font-size: 0.7rem !important; letter-spacing: 0.15em !important;
+    font-size: 0.68rem !important; letter-spacing: 0.22em !important;
     text-transform: uppercase !important;
     color: #ff8c32 !important; font-weight: 500 !important;
+}
+
+/* ── Topic chips ── */
+.chips-row {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-top: 0.85rem; justify-content: center;
+}
+.chip {
+    background: rgba(255,140,50,0.08);
+    border: 1px solid rgba(255,140,50,0.22);
+    border-radius: 999px;
+    padding: 0.32rem 0.9rem;
+    font-size: 0.78rem; color: #ffaa66;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, transform 0.12s;
+    white-space: nowrap;
+}
+.chip:hover {
+    background: rgba(255,140,50,0.18);
+    border-color: rgba(255,140,50,0.55);
+    transform: translateY(-1px);
 }
 
 /* ── Button ── */
@@ -106,6 +137,22 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; color: #e8e4dc;
     box-shadow: 0 8px 28px rgba(255,140,50,0.4) !important;
 }
 .stButton > button:active { transform: translateY(0) !important; }
+
+/* ── Clear button (2nd button) ── */
+div[data-testid="stButton"]:has(button[kind="secondary"]) > button,
+.stButton:nth-child(2) > button {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #888 !important;
+    box-shadow: none !important;
+    font-size: 0.85rem !important;
+}
+.stButton:nth-child(2) > button:hover {
+    border-color: rgba(255,80,80,0.4) !important;
+    color: #ff6666 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
 
 /* ── Step cards ── */
 .step-card {
@@ -228,50 +275,100 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Layout ────────────────────────────────────────────────────────────────────
-col_left, col_gap, col_right = st.columns([5, 0.4, 4])
+# ── Example chips (click to fill) ───────────────────────────────────────────
+EXAMPLE_TOPICS = [
+    "🤖 Rise of Agentic AI in 2026",
+    "🧬 CRISPR gene editing breakthroughs",
+    "🔋 Solid-state battery technology",
+    "🌍 Climate change solutions 2025",
+    "🚀 SpaceX Starship latest update",
+    "💊 GLP-1 drugs and obesity research",
+]
 
-with col_left:
-    topic = st.text_input(
-        "Research Topic",
-        placeholder="e.g. Rise of agentic AI in 2026",
-        key="topic_input",
-    )
-    run_btn = st.button("⚡  Run Research", use_container_width=True)
+# ── Centered search layout ────────────────────────────────────────────────────
+st.markdown('<div class="search-wrapper">', unsafe_allow_html=True)
 
+topic = st.text_input(
+    "Research Topic",
+    placeholder="e.g. Rise of agentic AI in 2026  —  press Enter or click Run",
+    key="topic_input",
+)
+
+# Chips row
+chips_html = '<div class="chips-row">' + "".join(
+    f'<span class="chip" onclick="document.querySelector(\'input[data-testid=stTextInputRootElement] input\').value=\'{t.split(\" \", 1)[-1]}\';">{t}</span>'
+    for t in EXAMPLE_TOPICS
+) + "</div>"
+st.markdown(chips_html, unsafe_allow_html=True)
+
+col_run, col_gap2, col_clear = st.columns([4, 0.3, 1.5])
+with col_run:
+    run_btn = st.button("⚡  Run Research", use_container_width=True, key="run_btn")
+with col_clear:
+    clear_btn = st.button("✕  Clear", use_container_width=True, key="clear_btn")
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Enter key support via JS
+st.markdown("""
+<script>
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const btns = window.parent.document.querySelectorAll('button');
+        for (const b of btns) {
+            if (b.innerText.includes('Run Research')) { b.click(); break; }
+        }
+    }
+});
+</script>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+# ── Pipeline tracker (right side) ────────────────────────────────────────────
+_, col_right = st.columns([1, 1])
 with col_right:
-    pipeline_ph = st.empty()
-    status_ph   = st.empty()
+    pass
 
-    STEPS = [
-        ("01", "Search Agent",  "search", "🔍"),
-        ("02", "Reader Agent",  "reader", "📄"),
-        ("03", "Writer Chain",  "writer", "✍️"),
-        ("04", "Critic Chain",  "critic", "🧐"),
-    ]
+pipeline_ph = st.empty()
+status_ph   = st.empty()
 
-    def render_pipeline(active=None, completed=None):
-        if completed is None:
-            completed = list(st.session_state.results.keys()) if st.session_state.results else []
-        cards = []
-        for num, title, key, icon in STEPS:
-            if key in completed:    state = "done"
-            elif key == active:     state = "running"
-            else:                   state = "waiting"
-            cards.append(step_card_html(num, title, state, icon))
-        pipeline_ph.markdown("".join(cards), unsafe_allow_html=True)
+# Handle clear
+if clear_btn:
+    st.session_state.results = {}
+    st.session_state.running = False
+    st.session_state.done    = False
+    st.rerun()
 
-    def set_status(msg=None):
-        if msg:
-            status_ph.markdown(
-                f'<div class="live-banner"><span>⚡</span><span>{msg}</span></div>',
-                unsafe_allow_html=True
-            )
-        else:
-            status_ph.empty()
+STEPS = [
+    ("01", "Search Agent",  "search", "🔍"),
+    ("02", "Reader Agent",  "reader", "📄"),
+    ("03", "Writer Chain",  "writer", "✍️"),
+    ("04", "Critic Chain",  "critic", "🧐"),
+]
 
-    if not st.session_state.running:
-        render_pipeline()
+def render_pipeline(active=None, completed=None):
+    if completed is None:
+        completed = list(st.session_state.results.keys()) if st.session_state.results else []
+    cards = []
+    for num, title, key, icon in STEPS:
+        if key in completed:    state = "done"
+        elif key == active:     state = "running"
+        else:                   state = "waiting"
+        cards.append(step_card_html(num, title, state, icon))
+    pipeline_ph.markdown("".join(cards), unsafe_allow_html=True)
+
+def set_status(msg=None):
+    if msg:
+        status_ph.markdown(
+            f'<div class="live-banner"><span>⚡</span><span>{msg}</span></div>',
+            unsafe_allow_html=True
+        )
+    else:
+        status_ph.empty()
+
+if not st.session_state.running:
+    render_pipeline()
 
 
 # ── Trigger ───────────────────────────────────────────────────────────────────
