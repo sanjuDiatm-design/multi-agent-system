@@ -294,11 +294,13 @@ topic = st.text_input(
     key="topic_input",
 )
 
-# Chips row
-chips_html = '<div class="chips-row">' + "".join(
-    f'<span class="chip" onclick="document.querySelector(\'input[data-testid=stTextInputRootElement] input\').value=\'{t.split(\" \", 1)[-1]}\';">{t}</span>'
-    for t in EXAMPLE_TOPICS
-) + "</div>"
+# Chips row — build without conflicting f-string escapes
+def make_chip(label):
+    topic_text = label.split(" ", 1)[-1]  # strip emoji prefix
+    onclick = f"document.querySelector('input').value='{topic_text}'"
+    return f'<span class="chip" onclick="{onclick}">{label}</span>'
+
+chips_html = '<div class="chips-row">' + "".join(make_chip(t) for t in EXAMPLE_TOPICS) + "</div>"
 st.markdown(chips_html, unsafe_allow_html=True)
 
 col_run, col_gap2, col_clear = st.columns([4, 0.3, 1.5])
