@@ -1,82 +1,58 @@
-﻿# 🤖 Multi-Agent System
+﻿# 🤖 Multi-Agent Research System
 
-A multi-agent AI system built with **LangChain**, **Groq LLM**, and **Streamlit**.
+An autonomous **AI-powered research pipeline** built with LangChain, Groq LLM, Tavily Search, and Streamlit. Enter any topic and watch four specialized agents collaborate to deliver a structured research report — automatically.
 
-## Features
+## 🧠 How It Works
 
-- Multi-agent pipeline with specialized agents
-- Tavily web search integration
-- Interactive Streamlit UI
-- Powered by Groq (fast LLM inference)
+The system runs a 4-step agentic pipeline:
 
-## 🚀 Getting Started
+1. **🔍 Search Agent** — Queries the web using Tavily to find recent, relevant sources on your topic
+2. **📄 Reader Agent** — Picks the most relevant URL and scrapes its full content using BeautifulSoup
+3. **✍️ Writer Agent** — Synthesizes the search results and scraped content into a clean, structured report
+4. **🧐 Critic Agent** — Reviews and scores the report, highlighting strengths and weaknesses
 
-### 1. Clone the repository
+## ✨ Features
 
-\\\ash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
-\\\
+- 🔗 Multi-agent pipeline with clear separation of concerns
+- ⚡ Powered by **Groq** for ultra-fast LLM inference
+- 🌐 Real-time web search via **Tavily**
+- 🕸️ Smart web scraping with BeautifulSoup + Tavily fallback
+- 📊 Interactive **Streamlit** UI with live progress tracking
+- 🔒 Secure API key handling via .env
 
-### 2. Create a virtual environment
+## 🛠️ Tech Stack
 
-\\\ash
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-\\\
+| Tool | Purpose |
+|------|---------|
+| LangChain | Agent orchestration |
+| Groq | Fast LLM inference |
+| Tavily | Web search & extraction |
+| BeautifulSoup | HTML scraping |
+| Streamlit | Interactive UI |
 
-### 3. Install dependencies
+## 🚀 Quick Start
 
-\\\ash
+`ash
+git clone https://github.com/YOUR_USERNAME/multi-agent-system.git
+cd multi-agent-system
+python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements.txt
-\\\
-
-### 4. Set up environment variables
-
-\\\ash
-copy .env.example .env
-\\\
-
-Then edit \.env\ and fill in your real API keys:
-- **GROQ_API_KEY** → Get from [console.groq.com](https://console.groq.com/keys)
-- **TAVILY_API_KEY** → Get from [app.tavily.com](https://app.tavily.com/)
-
-### 5. Run the app
-
-\\\ash
+copy .env.example .env   # Add your API keys
 streamlit run app.py
-\\\
-
-## 🌐 Deploy on Streamlit Cloud
-
-1. Push this repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io) and connect your repo
-3. Set **Main file**: \pp.py\
-4. In **Advanced settings → Secrets**, add:
-
-\\\	oml
-TAVILY_API_KEY = "your_key"
-GROQ_API_KEY = "your_key"
-GROQ_MODEL = "openai/gpt-oss-120b"
-\\\
-
-## 📁 Project Structure
-
-\\\
-multi_agent_system/
-├── app.py           # Streamlit UI
-├── agents.py        # Agent definitions
-├── pipeline.py      # Agent pipeline logic
-├── tools.py         # Custom tools
-├── requirements.txt # Python dependencies
-├── .env.example     # Environment variable template
-└── README.md
-\\\
+`
 
 ## 🔑 Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| \GROQ_API_KEY\ | Groq LLM API key |
-| \TAVILY_API_KEY\ | Tavily search API key |
-| \GROQ_MODEL\ | Model name to use |
+`env
+GROQ_API_KEY=your_groq_key
+TAVILY_API_KEY=your_tavily_key
+GROQ_MODEL=openai/gpt-oss-120b
+`
+
+Get keys: [Groq Console](https://console.groq.com/keys) · [Tavily](https://app.tavily.com/)
+
+## 🌐 Deploy on Streamlit Cloud
+
+1. Push to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io) → connect repo
+3. Add your API keys under **Settings → Secrets**
